@@ -1,23 +1,9 @@
-# ClawBee — Family Meal Planner Skills
+# ClawBee — Family Meal Planner Skills for OpenClaw
 
-> AI-powered meal planning for OpenClaw. Photo your fridge, get a weekly plan, receive the shopping list on Telegram.
+> Photo your fridge → get a 3-day meal plan → receive the shopping list on Telegram.
 
 [![skills.sh](https://img.shields.io/badge/skills.sh-mary4data%2FClawBee-blue)](https://skills.sh/mary4data/ClawBee)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE.txt)
-
-## Install
-
-```bash
-npx skills add mary4data/ClawBee
-```
-
-Or install individual skills:
-
-```bash
-npx skills add mary4data/ClawBee@orchestrator      # Full pipeline
-npx skills add mary4data/ClawBee@fridge-scanner    # Photo scan
-npx skills add mary4data/ClawBee@shopping-agent    # Telegram delivery
-```
 
 ---
 
@@ -25,74 +11,52 @@ npx skills add mary4data/ClawBee@shopping-agent    # Telegram delivery
 
 ```mermaid
 flowchart TD
-    %% ── Users ──────────────────────────────────────────────
     User(["👤 User"])
 
-    %% ── Channels ────────────────────────────────────────────
-    TG["📱 Telegram\n─────────────\nSend fridge photos\nReceive shopping lists"]
+    TG["📱 Telegram Bot\n─────────────\nSend fridge photos\nReceive shopping lists"]
     DC["🎮 Discord\n─────────────\nView meal plan posts\nBot-to-bot updates"]
 
-    %% ── OpenClaw on Railway ─────────────────────────────────
     subgraph RAIL ["🚂 Railway Cloud"]
         subgraph OC ["🦞 OpenClaw Gateway"]
             direction TB
-
             ORCH["🚀 Orchestrator\n/plan weekly · /plan post"]
 
-            subgraph SKILLS ["Agent Skills"]
+            subgraph SKILLS ["Agent Skills  ·  npx skills add mary4data/ClawBee"]
                 direction LR
-                FS["📸 Fridge Scanner\n/scan · /scan demo\n/scan shop"]
-                FT["🧊 Fridge Tracker\n/fridge list\n/fridge add · remove"]
-                MP["📅 Meal Planner\n/meals plan\n/meals show"]
-                PH["💰 Price Hunter\n/prices search\n/prices list"]
-                SA["🛒 Shopping Agent\n/shopping list\n/shopping send"]
+                FS["📸 Fridge Scanner\n/scan · /scan demo"]
+                FT["🧊 Fridge Tracker\n/fridge list · add"]
+                MP["📅 Meal Planner\n/meals plan"]
+                PH["💰 Price Hunter\n/prices search"]
+                SA["🛒 Shopping Agent\n/shopping send"]
             end
 
             ORCH --> FS & FT & MP & PH & SA
         end
 
-        DB[("🗄️ SQLite\npantry.db\n─────────\nfridge\nmeal_plans\nprices\nlast_scan")]
+        DB[("🗄️ SQLite\npantry.db")]
     end
 
-    %% ── External Services ───────────────────────────────────
-    FAI["🤖 Featherless AI\nLLM Backend\n(model inference)"]
-    WEB["🌐 Web Search\nBerlin supermarket prices\nRewe · Lidl · Aldi"]
+    FAI["🤖 Featherless AI\nLLM Backend"]
+    WEB["🌐 Web Search\nRewe · Lidl · Aldi Berlin"]
 
-    %% ── Skill Distribution ──────────────────────────────────
-    subgraph DIST ["Skill Distribution"]
-        GH["📦 GitHub\nmary4data/ClawBee"]
-        SKS["🔧 skills.sh\nPublic Registry"]
-        GH -->|"indexed automatically"| SKS
-    end
-
-    %% ── User flows ──────────────────────────────────────────
-    User -->|"fridge photo\n/scan command"| TG
+    User -->|"fridge photo / command"| TG
     User -->|"views posts"| DC
-    TG -->|"inbound message\n+ media"| OC
-    OC -->|"shopping list\nMarkdown"| TG
-    OC -->|"weekly plan post\n/plan post"| DC
+    TG -->|"inbound message + media"| OC
+    OC -->|"shopping list"| TG
+    OC -->|"meal plan post"| DC
 
-    %% ── Skill → DB ──────────────────────────────────────────
     FS & FT & MP & PH & SA <-->|"read / write"| DB
-
-    %% ── Skill → External ────────────────────────────────────
-    FS -->|"image analysis\ningredient detection"| FAI
-    MP -->|"meal generation"| FAI
-    PH -->|"price search\nBerlin 2025"| WEB
-    SA -->|"send shopping list"| TG
+    FS & MP -->|"LLM inference"| FAI
+    PH -->|"price search"| WEB
+    SA -->|"send list"| TG
     SA -->|"notify"| DC
 
-    %% ── Install path ────────────────────────────────────────
-    SKS -->|"npx skills add\nmary4data/ClawBee"| OC
-
-    %% ── Styles ──────────────────────────────────────────────
-    classDef channel   fill:#5865F2,color:#fff,stroke:#4752C4,rx:8
-    classDef skill     fill:#1e293b,color:#94a3b8,stroke:#334155,rx:6
-    classDef external  fill:#0f172a,color:#64748b,stroke:#1e293b,rx:6
-    classDef db        fill:#713f12,color:#fde68a,stroke:#92400e
-    classDef user      fill:#166534,color:#bbf7d0,stroke:#15803d
-    classDef orch      fill:#7c3aed,color:#ede9fe,stroke:#6d28d9,rx:8
-    classDef dist      fill:#0c4a6e,color:#bae6fd,stroke:#075985
+    classDef channel  fill:#5865F2,color:#fff,stroke:#4752C4
+    classDef skill    fill:#1e293b,color:#94a3b8,stroke:#334155
+    classDef external fill:#0f172a,color:#64748b,stroke:#1e293b
+    classDef db       fill:#713f12,color:#fde68a,stroke:#92400e
+    classDef user     fill:#166534,color:#bbf7d0,stroke:#15803d
+    classDef orch     fill:#7c3aed,color:#ede9fe,stroke:#6d28d9
 
     class TG,DC channel
     class FS,FT,MP,PH,SA skill
@@ -100,39 +64,110 @@ flowchart TD
     class DB db
     class User user
     class ORCH orch
-    class GH,SKS dist
 ```
 
 ---
 
-## Skills
+## Setup on Railway (5 min)
 
-| Skill | Command | Description |
-|---|---|---|
-| **orchestrator** | `/plan weekly [budget]` | Full pipeline: fridge → prices → plan → Telegram |
-| **fridge-scanner** | `/scan` + photo | Detect ingredients from photo, generate 3-day plan |
-| **fridge-tracker** | `/fridge list/add/remove` | Manage pantry inventory |
-| **meal-planner** | `/meals plan [budget]` | Weekly 7-day dinner plan |
-| **price-hunter** | `/prices search <item>` | Find cheapest prices in Berlin |
-| **shopping-agent** | `/shopping send` | Send optimized list to Telegram |
+### Step 1 — Create a Telegram Bot
 
-## Quick Start
+1. Open Telegram → search **@BotFather**
+2. Send `/newbot` and follow the prompts
+3. Copy the token: `123456789:ABCDEF...`
+4. Get your Chat ID: message **@userinfobot** → copy the `Id` number
 
+### Step 2 — Set Railway Environment Variables
+
+In Railway → your OpenClaw service → **Variables**, add:
+
+| Variable | Value |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | `123456789:ABCDEF...` |
+| `TELEGRAM_CHAT_ID` | `123456789` |
+| `FEATHERLESS_API_KEY` | your Featherless key |
+| `DISCORD_BOT_TOKEN` | *(optional)* |
+| `DISCORD_CHANNEL_ID` | *(optional)* |
+
+### Step 3 — Run Auto-Setup
+
+Open the Railway shell (**your service → Shell tab**) and run:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/mary4data/ClawBee/main/deploy/setup.sh)
 ```
-/plan weekly 80          → full pipeline, €80 budget
-/scan demo               → demo scan (no photo needed)
-/fridge add eggs 12      → add to fridge
-/prices search chicken   → find Berlin prices
-/shopping send           → push list to Telegram
+
+This single command:
+- Writes `openclaw.json` with Telegram + Featherless AI config
+- Clones ClawBee skills into `/data/workspace/clawbee/skills`
+- Creates `pantry.db` with all tables
+- Prints test commands when done
+
+### Step 4 — Restart OpenClaw
+
+In Railway → your service → **Restart** (or redeploy).
+
+### Step 5 — Test
+
+Send to your Telegram bot:
 ```
+/plan help
+```
+
+---
+
+## Install Skills Only
+
+If OpenClaw is already configured, just install the skills:
+
+```bash
+npx skills add mary4data/ClawBee
+```
+
+Or individual skills:
+```bash
+npx skills add mary4data/ClawBee@orchestrator
+npx skills add mary4data/ClawBee@fridge-scanner
+```
+
+---
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/plan weekly [budget]` | Full pipeline — fridge check, prices, meal plan, Telegram |
+| `/plan post` | Post plan to Discord |
+| `/scan` + photo | Scan fridge photo → 3-day plan |
+| `/scan demo` | Demo scan (no photo needed) |
+| `/scan shop` | Send scan's shopping list to Telegram |
+| `/fridge list` | Show pantry contents |
+| `/fridge add <item> [qty]` | Add item |
+| `/meals plan [budget]` | 7-day dinner plan |
+| `/prices search <item>` | Find cheapest price in Berlin |
+| `/shopping send` | Send shopping list to Telegram |
+| `/shopping optimize [€]` | Check against budget |
+
+---
+
+## Manual Config
+
+See [`deploy/openclaw.json.example`](deploy/openclaw.json.example) for the full config file.
+Place at `/data/.openclaw/openclaw.json` on your Railway instance.
+
+---
 
 ## Stack
 
-- **Runtime**: [OpenClaw](https://openclaw.ai) on Railway
-- **LLM**: Featherless AI
-- **Channels**: Telegram (shopping lists) + Discord (plan display)
-- **Storage**: SQLite (`pantry.db`)
-- **Skills**: [skills.sh/mary4data/ClawBee](https://skills.sh/mary4data/ClawBee)
+| Component | Technology |
+|---|---|
+| Gateway | [OpenClaw](https://openclaw.ai) on Railway |
+| LLM | [Featherless AI](https://featherless.ai) |
+| Messaging | Telegram Bot API + Discord |
+| Storage | SQLite (`pantry.db`) |
+| Skills | [skills.sh/mary4data/ClawBee](https://skills.sh/mary4data/ClawBee) |
+
+---
 
 ## License
 
