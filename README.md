@@ -1,5 +1,9 @@
 # ClawBee — Family Meal Planner Skills for OpenClaw
 
+<p align="center">
+  <img src="assets/logo.png" alt="ClawBee logo" width="180" />
+</p>
+
 > Photo your fridge → get a 3-day meal plan → receive the shopping list on Telegram.
 
 [![skills.sh](https://img.shields.io/badge/skills.sh-mary4data%2FClawBee-blue)](https://skills.sh/mary4data/ClawBee)
