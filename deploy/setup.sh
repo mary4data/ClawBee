@@ -15,7 +15,7 @@ echo "  ║   ClawBee Auto-Setup for OpenClaw ║"
 echo "  ╚═══════════════════════════════════╝"
 echo -e "${NC}"
 
-# ── Paths ────────────────────────────────────────────────────────────────────
+# ── Paths ─────────────────────────────────────────────────────────────────────
 STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
 WORKSPACE="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
 CONFIG="$STATE_DIR/openclaw.json"
@@ -35,19 +35,34 @@ if [ ${#MISSING[@]} -gt 0 ]; then
   exit 1
 fi
 
+# ── Step 0: Install sqlite3 if missing ───────────────────────────────────────
+if ! command -v sqlite3 &>/dev/null; then
+  echo -e "${CYAN}Step 0/3 — Installing sqlite3...${NC}"
+  if command -v apt-get &>/dev/null; then
+    apt-get update -qq && apt-get install -y -qq sqlite3
+  elif command -v apk &>/dev/null; then
+    apk add --quiet sqlite
+  elif command -v yum &>/dev/null; then
+    yum install -y -q sqlite
+  else
+    echo -e "${RED}  Cannot install sqlite3 — package manager not found.${NC}"
+    echo "  DB init skipped; tables will be created on first skill use."
+    SKIP_DB=1
+  fi
+  command -v sqlite3 &>/dev/null && echo -e "${GREEN}  ✓ sqlite3 installed${NC}"
+fi
+
+# ── Step 1: Write openclaw.json ───────────────────────────────────────────────
 echo -e "${CYAN}Step 1/3 — Writing openclaw.json config...${NC}"
 
-# Optional Discord
-DISCORD_BLOCK=""
+DISCORD_SECTION=""
 if [ -n "$DISCORD_BOT_TOKEN" ] && [ -n "$DISCORD_CHANNEL_ID" ]; then
-  DISCORD_BLOCK=$(cat <<DISCORD
+  DISCORD_SECTION=',
     "discord": {
       "enabled": true,
-      "token": "$DISCORD_BOT_TOKEN",
+      "token": "'"$DISCORD_BOT_TOKEN"'",
       "dmPolicy": "open"
-    },
-DISCORD
-)
+    }'
 fi
 
 cat > "$CONFIG" << EOF
@@ -67,7 +82,7 @@ cat > "$CONFIG" << EOF
       "botToken": "$TELEGRAM_BOT_TOKEN",
       "dmPolicy": "open",
       "allowFrom": ["$TELEGRAM_CHAT_ID"]
-    }$( [ -n "$DISCORD_BLOCK" ] && echo "," && echo "$DISCORD_BLOCK" | sed 's/^/    /' )
+    }$DISCORD_SECTION
   },
   "skills": {
     "load": {
@@ -82,6 +97,7 @@ EOF
 
 echo -e "${GREEN}  ✓ Config written to $CONFIG${NC}"
 
+# ── Step 2: Install ClawBee skills ───────────────────────────────────────────
 echo -e "${CYAN}Step 2/3 — Installing ClawBee skills...${NC}"
 
 if [ -d "$WORKSPACE/clawbee/.git" ]; then
@@ -94,24 +110,32 @@ fi
 
 echo -e "${GREEN}  ✓ Skills installed at $SKILLS_DIR${NC}"
 
+# ── Step 3: Init databases ────────────────────────────────────────────────────
 echo -e "${CYAN}Step 3/3 — Initialising skill databases...${NC}"
 
 DB="$WORKSPACE/pantry.db"
-sqlite3 "$DB" "
-  CREATE TABLE IF NOT EXISTS fridge (item TEXT NOT NULL UNIQUE, quantity TEXT, updated_at TEXT DEFAULT (datetime('now')));
-  CREATE TABLE IF NOT EXISTS meal_plans (week TEXT PRIMARY KEY, plan_json TEXT NOT NULL, budget REAL, created_at TEXT DEFAULT (datetime('now')));
-  CREATE TABLE IF NOT EXISTS family_prefs (key TEXT PRIMARY KEY, value TEXT);
-  CREATE TABLE IF NOT EXISTS prices (item TEXT NOT NULL, store TEXT, price REAL, unit TEXT, fetched_at TEXT DEFAULT (datetime('now')));
-  CREATE TABLE IF NOT EXISTS last_scan (id INTEGER PRIMARY KEY CHECK (id = 1), ingredients TEXT, plan TEXT, scanned_at TEXT DEFAULT (datetime('now')));
-  CREATE INDEX IF NOT EXISTS idx_prices_item ON prices(item);
-" && echo -e "${GREEN}  ✓ Database ready at $DB${NC}"
 
+if [ "${SKIP_DB}" != "1" ] && command -v sqlite3 &>/dev/null; then
+  sqlite3 "$DB" "
+    CREATE TABLE IF NOT EXISTS fridge (item TEXT NOT NULL UNIQUE, quantity TEXT, updated_at TEXT DEFAULT (datetime('now')));
+    CREATE TABLE IF NOT EXISTS meal_plans (week TEXT PRIMARY KEY, plan_json TEXT NOT NULL, budget REAL, created_at TEXT DEFAULT (datetime('now')));
+    CREATE TABLE IF NOT EXISTS family_prefs (key TEXT PRIMARY KEY, value TEXT);
+    CREATE TABLE IF NOT EXISTS prices (item TEXT NOT NULL, store TEXT, price REAL, unit TEXT, fetched_at TEXT DEFAULT (datetime('now')));
+    CREATE TABLE IF NOT EXISTS last_scan (id INTEGER PRIMARY KEY CHECK (id = 1), ingredients TEXT, plan TEXT, scanned_at TEXT DEFAULT (datetime('now')));
+    CREATE INDEX IF NOT EXISTS idx_prices_item ON prices(item);
+  "
+  echo -e "${GREEN}  ✓ Database ready at $DB${NC}"
+else
+  echo -e "${YELLOW}  ⚠ sqlite3 not available — skipping DB init (tables created on first use)${NC}"
+fi
+
+# ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════════════╗"
 echo -e "║  Setup complete! Restart OpenClaw gateway.   ║"
 echo -e "╚═══════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  ${YELLOW}Test it — send to your Telegram bot:${NC}"
+echo -e "  ${YELLOW}Restart your Railway service, then send to your bot:${NC}"
 echo -e "  /plan help          → show all commands"
 echo -e "  /scan demo          → demo meal plan (no photo)"
 echo -e "  /plan weekly 80     → full pipeline, €80 budget"
