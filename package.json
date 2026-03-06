@@ -1,0 +1,9 @@
+{
+  "name": "clawbee",
+  "version": "1.0.0",
+  "description": "OpenClaw skills for family meal planning - AI HackDay Berlin",
+  "type": "module",
+  "dependencies": {
+    "better-sqlite3": "^9.0.0"
+  }
+}
