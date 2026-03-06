@@ -21,6 +21,13 @@ Photo → ingredients → prices → 3-day meal plan → Telegram shopping list.
 
 Run these steps in sequence. Announce each step as you go.
 
+### Agent Handoff — after detecting ingredients
+After Step 2, **automatically sync detected ingredients to Fridge Tracker**:
+```bash
+sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO fridge (item, quantity, updated_at) VALUES ('<item>', 'detected', datetime('now'));"
+```
+This keeps the pantry inventory up to date so Meal Planner always has current data.
+
 ### Step 1 — Init DB
 ```bash
 bash skills/fridge-scanner/scripts/init-db.sh

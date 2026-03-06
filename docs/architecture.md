@@ -1,6 +1,6 @@
 # ClawBee — How It Works
 
-> Photo your fridge → AI plans your week → shopping list lands on Telegram.
+> Photo your fridge → AI agents collaborate → shopping list lands on Telegram.
 
 ---
 
@@ -11,17 +11,20 @@
 flowchart LR
 
     USER(["👤 You"])
-
     TG["📱 Telegram"]
     DC["🎮 Discord"]
 
     subgraph OC ["🦞 OpenClaw  ·  Railway"]
         ORCH["🚀 Orchestrator"]
-        FS["📸 Fridge Scanner"]
-        FT["🧊 Fridge Tracker"]
-        MP["📅 Meal Planner"]
-        PH["💰 Price Hunter"]
-        SA["🛒 Shopping Agent"]
+
+        subgraph AGENTS ["  Agent Skills  "]
+            FS["📸 Fridge\nScanner"]
+            FT["🧊 Fridge\nTracker"]
+            MP["📅 Meal\nPlanner"]
+            PH["💰 Price\nHunter"]
+            SA["🛒 Shopping\nAgent"]
+        end
+
         DB[("🗄️ pantry.db")]
     end
 
@@ -29,19 +32,23 @@ flowchart LR
     WEB["🌐 Web Search"]
 
     USER -->|"photo / command"| TG
-    TG -->|"message"| ORCH
+    TG --> ORCH
+    ORCH -->|"triggers"| FS & FT & MP & PH & SA
 
-    ORCH --> FS --> AI
-    ORCH --> FT
-    ORCH --> MP --> AI
-    ORCH --> PH --> WEB
-    ORCH --> SA
+    %% Agent-to-agent communication
+    FS -->|"syncs ingredients"| FT
+    FT -->|"shares inventory"| MP
+    PH -->|"shares prices"| SA
+    MP -->|"shares plan"| SA
+    SA -->|"budget feedback"| MP
 
-    FS & FT & MP & PH & SA --- DB
+    FS & MP --> AI
+    PH --> WEB
+    FS & FT & MP & PH & SA <--> DB
 
     SA -->|"shopping list"| TG
     SA -->|"meal plan"| DC
-    TG & DC -->|"delivers"| USER
+    TG & DC --> USER
 
     classDef user    fill:#166534,color:#bbf7d0,stroke:#15803d
     classDef channel fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
@@ -60,25 +67,68 @@ flowchart LR
 
 ---
 
+## Agent-to-Agent Communication
+
+Agents share results directly — no need to route everything through the orchestrator.
+
+```mermaid
+%%{init: {"theme": "dark"}}%%
+flowchart TD
+
+    FS["📸 Fridge Scanner\ndetects ingredients from photo"]
+    FT["🧊 Fridge Tracker\nmaintains live inventory"]
+    PH["💰 Price Hunter\nfinds cheapest Berlin prices"]
+    MP["📅 Meal Planner\ncreates weekly dinner plan"]
+    SA["🛒 Shopping Agent\nbuilds & delivers list"]
+
+    FS -->|"1 · auto-adds detected\ningredients to inventory"| FT
+    FT -->|"2 · tells planner\nwhat we already have"| MP
+    PH -->|"3 · sends price table\nto shopping agent"| SA
+    MP -->|"4 · sends plan +\nshopping list"| SA
+    SA -->|"5 · if over budget:\nask planner to adjust"| MP
+
+    style FS fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
+    style FT fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
+    style PH fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
+    style MP fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
+    style SA fill:#4c1d95,color:#e9d5ff,stroke:#7c3aed
+```
+
+| From | To | What is shared |
+|---|---|---|
+| Fridge Scanner | Fridge Tracker | Detected ingredients → auto-added to inventory |
+| Fridge Tracker | Meal Planner | Current stock → planner skips items already owned |
+| Price Hunter | Shopping Agent | Best prices per store → used for cost estimates |
+| Meal Planner | Shopping Agent | Weekly plan + missing ingredients list |
+| Shopping Agent | Meal Planner | Over-budget signal → planner swaps expensive meals |
+
+---
+
 ## Weekly Plan Flow
 
 ```mermaid
 %%{init: {"theme": "dark"}}%%
 flowchart TD
-    A(["👤 /plan weekly 80"]) --> B["🧊 Check fridge\nwhat do we have?"]
-    B --> C["💰 Search prices\nRewe · Lidl · Aldi"]
-    C --> D["📅 Generate 7-day plan\nwithin €80 budget"]
-    D --> E["🛒 Build shopping list\ngrouped by store"]
-    E --> F(["📱 Telegram\n🛒 Shopping list delivered"])
-    E --> G(["🎮 Discord\n📅 Meal plan posted"])
+    A(["👤 /plan weekly 80"])
+    B["🧊 Fridge Tracker\nwhat do we have?"]
+    C["💰 Price Hunter\nRewe · Lidl · Aldi"]
+    D["📅 Meal Planner\n7-day plan within €80"]
+    E{"within budget?"}
+    F["📅 Meal Planner\nadjusts — swaps meals"]
+    G["🛒 Shopping Agent\ngrouped by store"]
+    H(["📱 Telegram\n🛒 list delivered"])
+    I(["🎮 Discord\n📅 plan posted"])
+
+    A --> B --> C --> D --> E
+    E -->|"yes"| G
+    E -->|"no — feedback loop"| F --> G
+    G --> H & I
 
     style A fill:#166534,color:#bbf7d0,stroke:#15803d
-    style B fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
-    style C fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
-    style D fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
-    style E fill:#4c1d95,color:#e9d5ff,stroke:#7c3aed
-    style F fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
-    style G fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
+    style E fill:#78350f,color:#fde68a,stroke:#92400e
+    style F fill:#4c1d95,color:#e9d5ff,stroke:#7c3aed
+    style H fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
+    style I fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
 ```
 
 ---
@@ -88,28 +138,16 @@ flowchart TD
 ```mermaid
 %%{init: {"theme": "dark"}}%%
 flowchart TD
-    A(["📸 Send fridge photo\n+ /scan"]) --> B["🤖 AI detects ingredients\neggs · milk · pasta · tomatoes"]
-    B --> C["💰 Look up Berlin prices\nfor each ingredient"]
-    C --> D["🤖 AI creates 3-day plan\nusing what you have"]
-    D --> E(["📱 /scan shop\nSend list to Telegram"])
+    A(["📸 photo + /scan"])
+    B["🤖 AI detects ingredients\neggs · milk · pasta · tomatoes"]
+    C["🧊 Fridge Tracker\nauto-syncs detected items\nto pantry inventory"]
+    D["💰 Price Hunter\nlooks up Berlin prices"]
+    E["🤖 AI creates 3-day plan\nusing what you already have"]
+    F(["📱 /scan shop\nlist sent to Telegram"])
+
+    A --> B -->|"agent handoff"| C --> D --> E --> F
 
     style A fill:#166534,color:#bbf7d0,stroke:#15803d
-    style B fill:#1c1917,color:#d6d3d1,stroke:#57534e
     style C fill:#1e1b4b,color:#c4b5fd,stroke:#4338ca
-    style D fill:#1c1917,color:#d6d3d1,stroke:#57534e
-    style E fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
+    style F fill:#1e3a5f,color:#93c5fd,stroke:#1d4ed8
 ```
-
----
-
-## Commands
-
-| Command | What it does |
-|---|---|
-| `/plan weekly 80` | Full pipeline — fridge → prices → plan → Telegram |
-| `/scan` + photo | Scan fridge photo → instant 3-day plan |
-| `/scan demo` | Try without a photo |
-| `/scan shop` | Send plan's shopping list to Telegram |
-| `/fridge add eggs 12` | Track what's in your fridge |
-| `/prices search chicken` | Find cheapest price in Berlin |
-| `/shopping optimize 60` | Check list against budget |

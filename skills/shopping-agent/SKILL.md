@@ -38,6 +38,17 @@ Also notify Discord:
 
 Fallback if Telegram fails: display full list in chat with error message.
 
+## Agent Feedback Loop — budget exceeded
+
+If the total exceeds budget, **send feedback to Meal Planner** before finalising:
+1. Identify the 2-3 most expensive ingredients
+2. Ask Meal Planner to swap those meals for cheaper alternatives:
+   - Salmon → canned tuna or eggs
+   - Chicken breast → chicken thighs or lentils
+   - Fresh herbs → dried herbs
+3. Recalculate the list with the updated plan
+4. Only send to Telegram once the list fits within budget (or warn the user with the delta)
+
 ## `/shopping optimize [budget]`
 Default budget: €80.
 - Calculate total from price data
