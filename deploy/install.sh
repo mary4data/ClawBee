@@ -136,10 +136,10 @@ PYEOF
 
 echo -e "${GREEN}  ✓ openclaw.json ready${NC}"
 
-# Apply doctor fixes (enables Telegram, removes unknown keys, sets gateway mode)
+# Apply doctor fixes (enables Telegram, sets gateway mode)
 if command -v openclaw &>/dev/null; then
   openclaw config set gateway.mode local 2>/dev/null || true
-  openclaw doctor --fix 2>/dev/null && \
+  yes | openclaw doctor --fix 2>/dev/null && \
     echo -e "${GREEN}  ✓ openclaw doctor --fix applied${NC}" || true
 fi
 
