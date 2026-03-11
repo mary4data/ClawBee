@@ -81,20 +81,12 @@ port        = int(os.environ.get("PORT", "8080"))
 
 tg_token    = "$TELEGRAM_BOT_TOKEN"
 tg_chat_id  = "$TELEGRAM_CHAT_ID"
-fl_key      = "$FEATHERLESS_API_KEY"
 dc_token    = "$DISCORD_BOT_TOKEN"
 dc_channel  = "$DISCORD_CHANNEL_ID"
 
 config = {}
 
-if fl_key:
-    config["models"] = {
-        "provider": "openai",
-        "baseURL":  "https://api.featherless.ai/v1",
-        "apiKey":   fl_key,
-        "model":    "meta-llama/Meta-Llama-3.1-405B-Instruct",
-        "label":    "Featherless AI"
-    }
+# Note: model is configured via Railway env vars, not in openclaw.json
 
 config["channels"] = {
     "telegram": {
@@ -144,10 +136,11 @@ PYEOF
 
 echo -e "${GREEN}  ✓ openclaw.json ready${NC}"
 
-# Apply gateway mode via CLI in case wrapper overrides the file
+# Apply doctor fixes (enables Telegram, removes unknown keys, sets gateway mode)
 if command -v openclaw &>/dev/null; then
-  openclaw config set gateway.mode local 2>/dev/null && \
-    echo -e "${GREEN}  ✓ gateway.mode set to local${NC}" || true
+  openclaw config set gateway.mode local 2>/dev/null || true
+  openclaw doctor --fix 2>/dev/null && \
+    echo -e "${GREEN}  ✓ openclaw doctor --fix applied${NC}" || true
 fi
 
 # ── Step 2: Clone skills ───────────────────────────────────────────────────────
