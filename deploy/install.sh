@@ -44,7 +44,7 @@ fi
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
-STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
+STATE_DIR="${OPENCLAW_STATE_DIR:-/data/.clawdbot}"
 WORKSPACE="${OPENCLAW_WORKSPACE_DIR:-/data/workspace}"
 DB="$WORKSPACE/pantry.db"
 SKILLS_DIR="$WORKSPACE/clawbee/skills"
