@@ -67,60 +67,63 @@ if ! command -v sqlite3 &>/dev/null; then
   fi
 fi
 
-# ── Step 1: Write openclaw.json ────────────────────────────────────────────────
+# ── Step 1: Write openclaw.json via Python (safe JSON, no escaping issues) ─────
 
 echo ""
 echo -e "${CYAN}Step 1/3 — Writing openclaw.json...${NC}"
 
-# Build optional sections
-MODEL_SECTION=""
-if [ -n "$FEATHERLESS_API_KEY" ]; then
-MODEL_SECTION='"models": [
-    {
-      "provider": "openai",
-      "baseURL": "https://api.featherless.ai/v1",
-      "apiKey": "'"$FEATHERLESS_API_KEY"'",
-      "model": "meta-llama/Meta-Llama-3.1-405B-Instruct",
-      "label": "Featherless AI"
-    }
-  ],'
-fi
+python3 - <<PYEOF
+import json, os
 
-DISCORD_SECTION=""
-if [ -n "$DISCORD_BOT_TOKEN" ] && [ -n "$DISCORD_CHANNEL_ID" ]; then
-DISCORD_SECTION='    "discord": {
-      "enabled": true,
-      "token": "'"$DISCORD_BOT_TOKEN"'",
-      "dmPolicy": "open",
-      "allowFrom": ["channel:'"$DISCORD_CHANNEL_ID"'"]
-    },'
-fi
+state_dir   = "$STATE_DIR"
+skills_dir  = "$SKILLS_DIR"
+port        = int(os.environ.get("PORT", "8080"))
 
-cat > "$STATE_DIR/openclaw.json" << ENDOFCONFIG
-{
-  $MODEL_SECTION
-  "channels": {
+tg_token    = "$TELEGRAM_BOT_TOKEN"
+tg_chat_id  = "$TELEGRAM_CHAT_ID"
+fl_key      = "$FEATHERLESS_API_KEY"
+dc_token    = "$DISCORD_BOT_TOKEN"
+dc_channel  = "$DISCORD_CHANNEL_ID"
+
+config = {}
+
+if fl_key:
+    config["models"] = [{
+        "provider": "openai",
+        "baseURL":  "https://api.featherless.ai/v1",
+        "apiKey":   fl_key,
+        "model":    "meta-llama/Meta-Llama-3.1-405B-Instruct",
+        "label":    "Featherless AI"
+    }]
+
+config["channels"] = {
     "telegram": {
-      "enabled": true,
-      "botToken": "$TELEGRAM_BOT_TOKEN",
-      "dmPolicy": "open",
-      "allowFrom": ["$TELEGRAM_CHAT_ID"]
-    },
-    $DISCORD_SECTION
-    "web": { "enabled": false }
-  },
-  "skills": {
-    "load": {
-      "extraDirs": ["$SKILLS_DIR"]
+        "enabled":   True,
+        "botToken":  tg_token,
+        "dmPolicy":  "open",
+        "allowFrom": [tg_chat_id]
     }
-  },
-  "gateway": {
-    "port": ${PORT:-8080}
-  }
 }
-ENDOFCONFIG
 
-echo -e "${GREEN}  ✓ Config written to $STATE_DIR/openclaw.json${NC}"
+if dc_token and dc_channel:
+    config["channels"]["discord"] = {
+        "enabled":   True,
+        "token":     dc_token,
+        "dmPolicy":  "open",
+        "allowFrom": ["channel:" + dc_channel]
+    }
+
+config["skills"] = {"load": {"extraDirs": [skills_dir]}}
+config["gateway"] = {"port": port}
+
+out = os.path.join(state_dir, "openclaw.json")
+with open(out, "w") as f:
+    json.dump(config, f, indent=2)
+
+print("  Config written to", out)
+PYEOF
+
+echo -e "${GREEN}  ✓ openclaw.json ready${NC}"
 
 # ── Step 2: Clone skills ───────────────────────────────────────────────────────
 
@@ -153,10 +156,7 @@ CREATE TABLE IF NOT EXISTS meal_plans (
   budget REAL,
   created_at TEXT DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS family_prefs (
-  key TEXT PRIMARY KEY,
-  value TEXT
-);
+CREATE TABLE IF NOT EXISTS family_prefs (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS prices (
   item TEXT NOT NULL,
   store TEXT,
