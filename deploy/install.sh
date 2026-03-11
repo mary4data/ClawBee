@@ -121,7 +121,25 @@ with open(out, "w") as f:
     json.dump(config, f, indent=2)
 
 print("  Config written to", out)
-print(open(out).read())
+
+# Print config with sensitive values masked
+import copy, re
+def mask(obj):
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if k in ("apiKey", "botToken", "token"):
+                out[k] = re.sub(r'.', '*', str(v)[:-4]) + str(v)[-4:]
+            else:
+                out[k] = mask(v)
+        return out
+    if isinstance(obj, list):
+        return [mask(i) for i in obj]
+    return obj
+
+with open(out) as f:
+    loaded = json.load(f)
+print(json.dumps(mask(loaded), indent=2))
 PYEOF
 
 echo -e "${GREEN}  ✓ openclaw.json ready${NC}"
