@@ -29,6 +29,9 @@ MISSING=()
 [ -z "$TELEGRAM_CHAT_ID" ]    && MISSING+=("TELEGRAM_CHAT_ID")
 [ -z "$FEATHERLESS_API_KEY" ] && MISSING+=("FEATHERLESS_API_KEY")
 
+# Optional — default to a capable open model if not set
+FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct}"
+
 if [ ${#MISSING[@]} -gt 0 ]; then
   echo -e "${RED}Missing required env vars: ${MISSING[*]}${NC}"
   echo "Set them in Railway → your service → Variables, then re-run."
@@ -72,7 +75,7 @@ cat > "$CONFIG" << EOF
       "provider": "openai",
       "baseURL": "https://api.featherless.ai/v1",
       "apiKey": "$FEATHERLESS_API_KEY",
-      "model": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+      "model": "$FEATHERLESS_MODEL",
       "label": "Featherless AI"
     }
   ],

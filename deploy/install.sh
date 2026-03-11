@@ -57,6 +57,8 @@ TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN:-}"
 DISCORD_CHANNEL_ID="${DISCORD_CHANNEL_ID:-}"
+FEATHERLESS_API_KEY="${FEATHERLESS_API_KEY:-}"
+FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct}"
 
 # Show what's already configured
 if [ -n "$TELEGRAM_BOT_TOKEN" ] || [ -n "$TELEGRAM_CHAT_ID" ]; then
@@ -72,6 +74,11 @@ prompt_plain  TELEGRAM_CHAT_ID   "Telegram chat ID"
 prompt_plain  DISCORD_CHANNEL_ID "Discord channel ID (blank to skip)"
 if [ -n "$DISCORD_CHANNEL_ID" ]; then
   prompt_secret DISCORD_BOT_TOKEN "Discord bot token"
+fi
+echo ""
+prompt_secret FEATHERLESS_API_KEY "Featherless API key (blank to skip LLM)"
+if [ -n "$FEATHERLESS_API_KEY" ]; then
+  prompt_plain  FEATHERLESS_MODEL  "Featherless model ID"
 fi
 
 echo ""
@@ -113,8 +120,10 @@ if command -v railway &>/dev/null; then
   echo ""
   echo -e "${CYAN}Saving tokens to Railway Variables...${NC}"
   RAIL_VARS="TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID"
-  [ -n "$DISCORD_BOT_TOKEN" ]  && RAIL_VARS="$RAIL_VARS DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN"
-  [ -n "$DISCORD_CHANNEL_ID" ] && RAIL_VARS="$RAIL_VARS DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID"
+  [ -n "$DISCORD_BOT_TOKEN" ]   && RAIL_VARS="$RAIL_VARS DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN"
+  [ -n "$DISCORD_CHANNEL_ID" ]  && RAIL_VARS="$RAIL_VARS DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID"
+  [ -n "$FEATHERLESS_API_KEY" ] && RAIL_VARS="$RAIL_VARS FEATHERLESS_API_KEY=$FEATHERLESS_API_KEY"
+  [ -n "$FEATHERLESS_MODEL" ]   && RAIL_VARS="$RAIL_VARS FEATHERLESS_MODEL=$FEATHERLESS_MODEL"
 
   # shellcheck disable=SC2086
   railway variables set $RAIL_VARS --service clawdbot-railway-template 2>/dev/null && \
