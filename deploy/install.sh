@@ -60,28 +60,28 @@ DISCORD_CHANNEL_ID="${DISCORD_CHANNEL_ID:-}"
 FEATHERLESS_API_KEY="${FEATHERLESS_API_KEY:-}"
 FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct}"
 
-# Show what's already configured
-if [ -n "$TELEGRAM_BOT_TOKEN" ] || [ -n "$TELEGRAM_CHAT_ID" ]; then
-  echo -e "${GREEN}  Existing Railway Variables detected — press Enter to keep each value.${NC}"
+# Skip prompts if all required vars already set (e.g. running inside Railway)
+if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+  echo -e "${GREEN}  Railway Variables detected — using existing values.${NC}"
+  echo ""
+else
+  echo "Enter your values (tokens hidden while typing)"
+  echo ""
+
+  prompt_secret TELEGRAM_BOT_TOKEN "Telegram bot token"
+  prompt_plain  TELEGRAM_CHAT_ID   "Telegram chat ID"
+  prompt_plain  DISCORD_CHANNEL_ID "Discord channel ID (blank to skip)"
+  if [ -n "$DISCORD_CHANNEL_ID" ]; then
+    prompt_secret DISCORD_BOT_TOKEN "Discord bot token"
+  fi
+  echo ""
+  prompt_secret FEATHERLESS_API_KEY "Featherless API key (blank to skip LLM)"
+  if [ -n "$FEATHERLESS_API_KEY" ]; then
+    prompt_plain  FEATHERLESS_MODEL  "Featherless model ID"
+  fi
+
   echo ""
 fi
-
-echo "Enter your values (tokens hidden while typing)"
-echo ""
-
-prompt_secret TELEGRAM_BOT_TOKEN "Telegram bot token"
-prompt_plain  TELEGRAM_CHAT_ID   "Telegram chat ID"
-prompt_plain  DISCORD_CHANNEL_ID "Discord channel ID (blank to skip)"
-if [ -n "$DISCORD_CHANNEL_ID" ]; then
-  prompt_secret DISCORD_BOT_TOKEN "Discord bot token"
-fi
-echo ""
-prompt_secret FEATHERLESS_API_KEY "Featherless API key (blank to skip LLM)"
-if [ -n "$FEATHERLESS_API_KEY" ]; then
-  prompt_plain  FEATHERLESS_MODEL  "Featherless model ID"
-fi
-
-echo ""
 
 # ── Validate ───────────────────────────────────────────────────────────────────
 
