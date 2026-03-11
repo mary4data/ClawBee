@@ -88,19 +88,19 @@ dc_channel  = "$DISCORD_CHANNEL_ID"
 config = {}
 
 if fl_key:
-    config["models"] = [{
+    config["models"] = {
         "provider": "openai",
         "baseURL":  "https://api.featherless.ai/v1",
         "apiKey":   fl_key,
         "model":    "meta-llama/Meta-Llama-3.1-405B-Instruct",
         "label":    "Featherless AI"
-    }]
+    }
 
 config["channels"] = {
     "telegram": {
         "enabled":   True,
         "botToken":  tg_token,
-        "dmPolicy":  "open",
+        "dmPolicy":  "allowlist",
         "allowFrom": [tg_chat_id]
     }
 }
@@ -109,12 +109,12 @@ if dc_token and dc_channel:
     config["channels"]["discord"] = {
         "enabled":   True,
         "token":     dc_token,
-        "dmPolicy":  "open",
+        "dmPolicy":  "allowlist",
         "allowFrom": ["channel:" + dc_channel]
     }
 
 config["skills"] = {"load": {"extraDirs": [skills_dir]}}
-config["gateway"] = {"port": port}
+config["gateway"] = {"mode": "local", "port": port}
 
 out = os.path.join(state_dir, "openclaw.json")
 with open(out, "w") as f:
