@@ -121,9 +121,16 @@ with open(out, "w") as f:
     json.dump(config, f, indent=2)
 
 print("  Config written to", out)
+print(open(out).read())
 PYEOF
 
 echo -e "${GREEN}  ✓ openclaw.json ready${NC}"
+
+# Apply gateway mode via CLI in case wrapper overrides the file
+if command -v openclaw &>/dev/null; then
+  openclaw config set gateway.mode local 2>/dev/null && \
+    echo -e "${GREEN}  ✓ gateway.mode set to local${NC}" || true
+fi
 
 # ── Step 2: Clone skills ───────────────────────────────────────────────────────
 
