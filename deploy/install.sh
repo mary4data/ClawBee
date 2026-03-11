@@ -60,9 +60,9 @@ DISCORD_CHANNEL_ID="${DISCORD_CHANNEL_ID:-}"
 FEATHERLESS_API_KEY="${FEATHERLESS_API_KEY:-}"
 FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct}"
 
-# Skip prompts if all required vars already set (e.g. running inside Railway)
-if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-  echo -e "${GREEN}  Railway Variables detected — using existing values.${NC}"
+# Detect Railway environment — skip all prompts, use injected env vars
+if [ -n "$RAILWAY_SERVICE_ID" ]; then
+  echo -e "${GREEN}  Railway environment detected — using Railway Variables (no prompts).${NC}"
   echo ""
 else
   echo "Enter your values (tokens hidden while typing)"
