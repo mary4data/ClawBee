@@ -1,62 +1,75 @@
 ---
 name: fridge-scanner
-description: "Scan a fridge or food photo to detect ingredients, look up Berlin supermarket prices, generate a 3-day family meal plan, and send the shopping list to Telegram. Triggers on: /scan, /scan demo, /scan plan, /scan shop, or when a user attaches a fridge/food photo and asks for meal ideas or a shopping list."
-license: Complete terms in LICENSE.txt
+description: Scans a fridge or pantry photo to identify ingredients using Featherless AI vision. Use whenever a user uploads a food/fridge photo and wants to know what ingredients they have, track inventory, or get meal ideas. Trigger on: "scan my fridge", "what's in my fridge", "identify ingredients", "scan these groceries", or any food/fridge image upload.
+metadata:
+  author: open-claw
+  version: 2.0.0
+  category: food
 ---
 
 # Fridge Scanner
 
-Photo → ingredients → prices → 3-day meal plan → Telegram shopping list.
+Analyzes fridge/pantry photos using Featherless AI (Qwen3-VL) to identify ingredients, then saves results to the pantry database.
 
-## Commands
+---
 
-| Command | Description |
-|---------|-------------|
-| `/scan` + photo | Full pipeline with image |
-| `/scan demo` | Pipeline with sample ingredients (no photo) |
-| `/scan plan` | Show last saved plan |
-| `/scan shop` | Send last shopping list to Telegram |
+## Step 1: Validate Input
 
-## Pipeline (`/scan` or `/scan demo`)
+- If no image provided: "Please upload a photo of your fridge or ingredients and I'll scan it for you!"
+- If image provided: proceed to Step 2
 
-Run these steps in sequence. Announce each step as you go.
+---
 
-### Agent Handoff — after detecting ingredients
-After Step 2, **automatically sync detected ingredients to Fridge Tracker**:
+## Step 2: Run Vision Analysis
+
+Save the image to `/tmp/scan_input.<ext>`, then run:
+
 ```bash
-sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO fridge (item, quantity, updated_at) VALUES ('<item>', 'detected', datetime('now'));"
+cd /data/workspace/clawbee/skills/fridge-scanner && python3 scripts/scan_fridge.py --image /tmp/scan_input.<ext> --print
 ```
-This keeps the pantry inventory up to date so Meal Planner always has current data.
 
-### Step 1 — Init DB
+The script uses `Qwen/Qwen3-VL-30B-A3B-Instruct` via Featherless AI and automatically:
+- Identifies all visible ingredients
+- Saves a JSON file to `/data/workspace/`
+- Syncs detected items to `pantry.db` fridge table
+
+---
+
+## Step 3: Present Results
+
+Show the user:
+1. How many ingredients were found
+2. The list grouped by category with emoji:
+   - 🥛 Dairy
+   - 🥦 Produce
+   - 🍗 Protein
+   - 🌾 Grains
+   - 🧴 Condiments
+   - 🥤 Beverages
+   - ❄️ Frozen
+   - 🍿 Snacks
+3. The summary from the scan
+
+End with: "Items added to your fridge inventory. Run `/meals plan` to generate a meal plan!"
+
+---
+
+## /scan demo (no photo)
+
+Use sample items: eggs, milk, tomatoes, pasta, onions, cheese, carrots, garlic.
+
 ```bash
-bash skills/fridge-scanner/scripts/init-db.sh
+sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO fridge (item,quantity,updated_at) VALUES ('eggs','6',datetime('now')),('milk','1 carton',datetime('now')),('tomatoes','3',datetime('now')),('pasta','500g',datetime('now')),('onions','2',datetime('now')),('cheese','1 block',datetime('now')),('carrots','4',datetime('now')),('garlic','1 head',datetime('now'));" 2>/dev/null
 ```
 
-### Step 2 — Detect Ingredients
-- **With photo**: Analyze the image — list every visible food item as a JSON array (max 15 items)
-- **Demo mode**: Use `["eggs","milk","tomatoes","onions","pasta","olive oil","carrots","cheese","garlic","potatoes"]`
+Show the added items and suggest running `/meals plan`.
 
-### Step 3 — Search Prices
-Web search: `"[ingredient] price Rewe Lidl Aldi Berlin 2025"` for the top 8 ingredients.
-See `references/berlin-prices.md` for typical price ranges.
+---
 
-### Step 4 — Generate 3-Day Plan
-Create a practical dinner plan for a family of 4. See `references/pipeline.md` for output format.
+## Notes
 
-### Step 5 — Save & Display
-```bash
-bash skills/fridge-scanner/scripts/save-plan.sh '[ingredients_json]' '[plan_json]'
-```
-Display plan and shopping list, then: "Run `/scan shop` to send to Telegram."
-
-## `/scan plan`
-```bash
-bash skills/fridge-scanner/scripts/load-plan.sh
-```
-
-## `/scan shop`
-Send via the message tool:
-```json
-{"action":"send","channel":"telegram","to":"$TELEGRAM_CHAT_ID","message":"*Shopping List*\n\n[items]\n\n*Total: €[amount]*\n\n_OpenClaw Meal Planner_"}
-```
+- Requires `FEATHERLESS_API_KEY` in environment (already set in Railway)
+- Supported formats: JPG, PNG, WEBP, GIF
+- Results saved to `/data/workspace/fridge_scan_<timestamp>.json`
+- Items synced to `pantry.db` for use by meal-planner and shopping-agent
+- Uses `openai` Python package with Featherless base URL (NOT anthropic SDK)
