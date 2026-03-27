@@ -10,7 +10,7 @@ Persistent fridge and pantry inventory using SQLite.
 
 ## Setup
 ```bash
-bash skills/fridge-tracker/scripts/init-db.sh
+bash /data/workspace/clawbee/skills/fridge-tracker/scripts/init-db.sh
 ```
 
 ## Commands
@@ -23,13 +23,13 @@ Display as a bullet list. If empty: "Fridge is empty. Add items with `/fridge ad
 
 ### `/fridge add <item> [quantity]`
 ```bash
-sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO fridge (item,quantity,updated_at) VALUES (lower('<item>'), '<quantity>', datetime('now'));"
+sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO fridge (item,quantity,updated_at) VALUES (lower(?),?,datetime('now'));" '<item>' '<quantity>'
 ```
 Reply: "Added **[item]** ([quantity]) to fridge."
 
 ### `/fridge remove <item>`
 ```bash
-sqlite3 /data/workspace/pantry.db "DELETE FROM fridge WHERE item=lower('<item>');"
+sqlite3 /data/workspace/pantry.db "DELETE FROM fridge WHERE item=lower(?);" '<item>'
 ```
 Reply: "Removed **[item]**." or "Item not found."
 

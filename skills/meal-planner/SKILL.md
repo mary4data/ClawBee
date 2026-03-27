@@ -10,7 +10,7 @@ Weekly dinner planning for a family of 4 using fridge contents and a budget.
 
 ## Setup
 ```bash
-bash skills/meal-planner/scripts/init-db.sh
+bash /data/workspace/clawbee/skills/meal-planner/scripts/init-db.sh
 ```
 
 ## Commands
@@ -29,7 +29,7 @@ Default budget: €100.
 
 4. Save plan:
    ```bash
-   bash skills/meal-planner/scripts/save-plan.sh '[week]' '[plan_json]' [budget]
+   bash /data/workspace/clawbee/skills/meal-planner/scripts/save-plan.sh '[week]' '[plan_json]' [budget]
    ```
 
 5. Display the plan and shopping list. End with: "Run `/shopping send` to send to Telegram."
@@ -42,7 +42,8 @@ Display in readable format. If none: "No plan yet. Run `/meals plan` first."
 
 ### `/meals pref <key> <value>`
 ```bash
-sqlite3 /data/workspace/pantry.db "CREATE TABLE IF NOT EXISTS family_prefs (key TEXT PRIMARY KEY, value TEXT); INSERT OR REPLACE INTO family_prefs VALUES ('<key>','<value>');"
+sqlite3 /data/workspace/pantry.db "CREATE TABLE IF NOT EXISTS family_prefs (key TEXT PRIMARY KEY, value TEXT);"
+sqlite3 /data/workspace/pantry.db "INSERT OR REPLACE INTO family_prefs (key, value) VALUES (?, ?);" '<key>' '<value>'
 ```
 Examples: `/meals pref people 4`, `/meals pref vegetarian yes`, `/meals pref budget 80`
 

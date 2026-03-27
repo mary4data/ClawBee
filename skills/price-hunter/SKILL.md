@@ -10,7 +10,7 @@ Find and track the best grocery prices in Berlin.
 
 ## Setup
 ```bash
-bash skills/price-hunter/scripts/init-db.sh
+bash /data/workspace/clawbee/skills/price-hunter/scripts/init-db.sh
 ```
 
 ## Commands
@@ -20,7 +20,7 @@ bash skills/price-hunter/scripts/init-db.sh
 2. Extract prices for 2–3 stores. See `references/berlin-prices.md` for typical ranges.
 3. Save results:
    ```bash
-   bash skills/price-hunter/scripts/save-price.sh '[item]' '[store]' [price] '[unit]'
+   bash /data/workspace/clawbee/skills/price-hunter/scripts/save-price.sh '[item]' '[store]' [price] '[unit]'
    ```
 4. Display sorted cheapest first:
    ```
@@ -33,7 +33,7 @@ bash skills/price-hunter/scripts/init-db.sh
 
 ### `/prices best <item>`
 ```bash
-sqlite3 /data/workspace/pantry.db "SELECT store, price, unit FROM prices WHERE item='[item]' ORDER BY price ASC LIMIT 1;"
+sqlite3 /data/workspace/pantry.db "SELECT store, price, unit FROM prices WHERE item=lower(?) ORDER BY price ASC LIMIT 1;" '[item]'
 ```
 Reply: "Best price for **[item]**: €[price] [unit] at **[store]**"
 

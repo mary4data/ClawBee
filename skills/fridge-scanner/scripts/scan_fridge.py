@@ -130,8 +130,9 @@ def scan_fridge(image_path: str, output_path: str = None) -> dict:
     }
 
     if not output_path:
+        workspace = os.environ.get("OPENCLAW_WORKSPACE_DIR", "/data/workspace")
         date_str = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        output_path = f"/data/workspace/fridge_scan_{date_str}.json"
+        output_path = f"{workspace}/fridge_scan_{date_str}.json"
 
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -141,7 +142,8 @@ def scan_fridge(image_path: str, output_path: str = None) -> dict:
     # Sync to pantry.db using Python sqlite3
     try:
         import sqlite3 as _sqlite3
-        db = _sqlite3.connect("/data/workspace/pantry.db")
+        workspace = os.environ.get("OPENCLAW_WORKSPACE_DIR", "/data/workspace")
+        db = _sqlite3.connect(f"{workspace}/pantry.db")
         db.execute("CREATE TABLE IF NOT EXISTS fridge (item TEXT PRIMARY KEY, quantity TEXT, updated_at TEXT)")
         for item in scan_result["ingredients"]:
             db.execute(

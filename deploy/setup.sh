@@ -30,7 +30,7 @@ MISSING=()
 [ -z "$FEATHERLESS_API_KEY" ] && MISSING+=("FEATHERLESS_API_KEY")
 
 # Optional — default to a capable open model if not set
-FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct}"
+FEATHERLESS_MODEL="${FEATHERLESS_MODEL:-Qwen/Qwen3-32B}"
 
 if [ ${#MISSING[@]} -gt 0 ]; then
   echo -e "${RED}Missing required env vars: ${MISSING[*]}${NC}"
@@ -83,8 +83,10 @@ cat > "$CONFIG" << EOF
     "telegram": {
       "enabled": true,
       "botToken": "$TELEGRAM_BOT_TOKEN",
-      "dmPolicy": "open",
-      "allowFrom": ["$TELEGRAM_CHAT_ID"]
+      "dmPolicy": "allowlist",
+      "allowFrom": ["$TELEGRAM_CHAT_ID"],
+      "groupPolicy": "open",
+      "streaming": "partial"
     }$DISCORD_SECTION
   },
   "skills": {
@@ -112,6 +114,13 @@ else
 fi
 
 echo -e "${GREEN}  ✓ Skills installed at $SKILLS_DIR${NC}"
+
+# Install Python dependencies for fridge-scanner
+if command -v python3 &>/dev/null; then
+  python3 -m pip install -q -r "$SKILLS_DIR/fridge-scanner/requirements.txt" --break-system-packages 2>/dev/null \
+    && echo -e "${GREEN}  ✓ Python dependencies installed${NC}" \
+    || echo -e "${YELLOW}  ⚠ pip install failed — run manually: pip install openai${NC}"
+fi
 
 # ── Step 3: Init databases ────────────────────────────────────────────────────
 echo -e "${CYAN}Step 3/3 — Initialising skill databases...${NC}"

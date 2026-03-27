@@ -4,7 +4,7 @@
       "provider": "openai",
       "baseURL": "https://api.featherless.ai/v1",
       "apiKey": "YOUR_FEATHERLESS_API_KEY",
-      "model": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+      "model": "Qwen/Qwen3-32B",
       "label": "Featherless AI"
     }
   ],
@@ -12,8 +12,10 @@
     "telegram": {
       "enabled": true,
       "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
-      "dmPolicy": "open",
-      "allowFrom": ["YOUR_TELEGRAM_CHAT_ID"]
+      "dmPolicy": "allowlist",
+      "allowFrom": ["YOUR_TELEGRAM_USER_ID"],
+      "groupPolicy": "open",
+      "streaming": "partial"
     },
     "discord": {
       "enabled": true,
