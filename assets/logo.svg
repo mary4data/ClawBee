@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="96" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+
+  <!-- Honeycomb hex (bee body) -->
+  <polygon points="100,42 124,56 124,84 100,98 76,84 76,56"
+    fill="#1e293b" stroke="#fbbf24" stroke-width="2.5"/>
+
+  <!-- Bee stripes -->
+  <line x1="76" y1="63" x2="124" y2="63" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+  <line x1="76" y1="75" x2="124" y2="75" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Bee stinger (points down) -->
+  <polygon points="100,98 94,112 106,112" fill="#fbbf24"/>
+
+  <!-- Bee wings -->
+  <ellipse cx="68" cy="60" rx="18" ry="10" fill="#7c3aed" opacity="0.7" transform="rotate(-30 68 60)"/>
+  <ellipse cx="132" cy="60" rx="18" ry="10" fill="#7c3aed" opacity="0.7" transform="rotate(30 132 60)"/>
+
+  <!-- Left claw arm -->
+  <path d="M78 120 Q55 128 46 118 Q38 108 48 100 Q56 93 64 100"
+    fill="none" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+  <!-- Left claw pincer top -->
+  <path d="M64 100 Q70 92 78 96 Q72 104 64 100"
+    fill="#475569" stroke="#64748b" stroke-width="2"/>
+  <!-- Left claw pincer bottom -->
+  <path d="M64 100 Q62 110 70 112 Q72 104 64 100"
+    fill="#475569" stroke="#64748b" stroke-width="2"/>
+
+  <!-- Right claw arm -->
+  <path d="M122 120 Q145 128 154 118 Q162 108 152 100 Q144 93 136 100"
+    fill="none" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+  <!-- Right claw pincer top -->
+  <path d="M136 100 Q130 92 122 96 Q128 104 136 100"
+    fill="#475569" stroke="#64748b" stroke-width="2"/>
+  <!-- Right claw pincer bottom -->
+  <path d="M136 100 Q138 110 130 112 Q128 104 136 100"
+    fill="#475569" stroke="#64748b" stroke-width="2"/>
+
+  <!-- Connector: body to claws -->
+  <line x1="82" y1="112" x2="78" y2="120" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+  <line x1="118" y1="112" x2="122" y2="120" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Eye dots on hex body -->
+  <circle cx="91" cy="68" r="3" fill="#fbbf24"/>
+  <circle cx="109" cy="68" r="3" fill="#fbbf24"/>
+
+  <!-- Text: ClawBee -->
+  <text x="100" y="158" font-family="'Courier New', monospace" font-size="18" font-weight="bold"
+    fill="#f8fafc" text-anchor="middle" letter-spacing="2">ClawBee</text>
+
+  <!-- Tagline -->
+  <text x="100" y="175" font-family="'Courier New', monospace" font-size="8"
+    fill="#64748b" text-anchor="middle" letter-spacing="1">KITCHEN AI</text>
+</svg>
