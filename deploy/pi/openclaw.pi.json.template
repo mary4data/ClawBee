@@ -1,0 +1,64 @@
+// ClawBee OpenClaw config for Raspberry Pi.
+// Model IDs and Telegram allowlists are substituted at install time.
+// The Featherless API key is written into the generated config because the
+// current ClawBee/OpenClaw setup expects provider credentials there.
+
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback",
+    "port": 18789,
+    "tailscale": {
+      "mode": "serve"
+    }
+  },
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "${OPENCLAW_MODEL}",
+        "fallbacks": ["${OPENCLAW_MODEL}"]
+      },
+      "sandbox": {
+        "mode": "off"
+      }
+    }
+  },
+
+  "models": [
+    {
+      "provider": "openai",
+      "baseURL": "https://api.featherless.ai/v1",
+      "apiKey": "$FEATHERLESS_API_KEY",
+      "model": "${OPENCLAW_MODEL}",
+      "label": "Featherless AI"
+    },
+    {
+      "provider": "openai",
+      "baseURL": "https://api.featherless.ai/v1",
+      "apiKey": "$FEATHERLESS_API_KEY",
+      "model": "${OPENCLAW_VISION_MODEL}",
+      "label": "Featherless Vision"
+    }
+  ],
+
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "allowFrom": [${TELEGRAM_CHAT_ID}],
+      "groupPolicy": "open",
+      "streaming": "partial"
+    }
+  },
+
+  "skills": {
+    "load": {
+      "extraDirs": ["/data/workspace/clawbee/skills"]
+    }
+  },
+
+  "tools": {
+    "profile": "minimal"
+  }
+}
